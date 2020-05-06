@@ -1,24 +1,25 @@
-clc
-clear
-close all
 %{
  { get_new_prio = addmf(get_new_prio,'input',2,'is_rt','trapmf',[0 0 1 2]);
  %}
+clc
+clear
+close all
+prmain()
 
-function [] = main()
-
+function [] = prmain()
+	prio = get_prio(30, 5, 50, 50)
 end
 
 function prio = get_prio(init_prio, real_time, wait_time, io_time)
-	new_prio = get_new_prio_f(init_prio, real_time);
-	reg_prio = get_reg_prio_f(new_prio, wait_time);
-	prio = get_full_prio_f(reg_prio, io_time); 
-end	
+	new_prio = get_new_prio_f(init_prio, real_time, false);
+	reg_prio = get_reg_prio_f(new_prio, wait_time, false);
+	prio = get_full_prio_f(reg_prio, io_time, true);
+end
 
 %{
  { get_new_prio
  %}
-funtion new_prio = get_new_prio_f(init_prio, real_time)
+function new_prio = get_new_prio_f(init_prio, real_time, show)
 get_new_prio = newfis('get_new_prio');
 get_new_prio.Rules = [];
 
@@ -48,17 +49,20 @@ r6 = 'init_prio==high & real_time==not_rt => new_prio=high'
 
 c = char(r1, r2, r3, r4, r5, r6);
 get_new_prio = addrule(get_new_prio, c);
-fuzzy(get_new_prio)
-plotfis(get_new_prio)
-showrule(get_new_prio)
-ruleview(get_new_prio)
-new_prio=evalfis([init_prio, real_time], get_new_prio)
+if show
+	fuzzy(get_new_prio)
+	plotfis(get_new_prio)
+	showrule(get_new_prio)
+	ruleview(get_new_prio)
+end
+
+new_prio=evalfis([init_prio, real_time], get_new_prio);
 end
 
 %{
  { get_reg prio
  %}
-funtion reg_prio = get_reg_prio_f(prio, wait_time) 
+function reg_prio = get_reg_prio_f(prio, wait_time, show) 
 get_reg_prio = newfis('get_reg_prio');
 get_reg_prio.Rules = [];
 
@@ -89,17 +93,19 @@ r6 = 'prio==high & wait_time==not_long => reg_prio=high'
 
 c = char(r1, r2, r3, r4, r5, r6);
 get_reg_prio = addrule(get_reg_prio, c);
-fuzzy(get_reg_prio)
-plotfis(get_reg_prio)
-showrule(get_reg_prio)
-ruleview(get_reg_prio)
-reg_prio=evalfis([prio, wait_time], get_reg_prio)
+if show
+	fuzzy(get_reg_prio)
+	plotfis(get_reg_prio)
+	showrule(get_reg_prio)
+	ruleview(get_reg_prio)
+end
+reg_prio=evalfis([prio, wait_time], get_reg_prio);
 end
 
 %{
  { get_full_prio
  %}
-funtion full_prio = get_full_prio_f(reg_prio, io_time) 
+function full_prio = get_full_prio_f(reg_prio, io_time, show) 
 get_full_prio = newfis('get_full_prio');
 get_full_prio.Rules = [];
 
@@ -132,9 +138,11 @@ r8 = 'io_time==long & reg_prio==top_high => full_prio=top_high'
 
 c = char(r1, r2, r3, r4, r5, r6, r7, r8);
 get_full_prio = addrule(get_full_prio, c);
-fuzzy(get_full_prio)
-plotfis(get_full_prio)
-showrule(get_full_prio)
-ruleview(get_full_prio)
-full_prio=evalfis([reg_prio, io_time], get_full_prio)
+if show
+	fuzzy(get_full_prio)
+	plotfis(get_full_prio)
+	showrule(get_full_prio)
+	ruleview(get_full_prio)
+end
+full_prio=evalfis([reg_prio, io_time], get_full_prio);
 end
